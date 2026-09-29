@@ -6,18 +6,16 @@ import {
   Mail,
   User,
   X,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
   Eye,
   EyeOff,
-  KeyRound,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
   ShieldCheck
 } from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSuccess }) {
-  const [mode, setMode] = useState(initialMode); // 'login' | 'signup' | 'reset'
+export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSuccess, isGate = false }) {
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -36,7 +34,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
 
     if (!isSupabaseConfigured) {
       setLoading(false);
-      setErrorMsg('Supabase cloud parameters are not configured in your environment. You can explore Aegis features locally in Demo Mode.');
+      setErrorMsg('Cloud authentication is not configured. You can explore all features in Demo Mode without signing in.');
       return;
     }
 
@@ -45,307 +43,227 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName
-            }
-          }
+          options: { data: { full_name: fullName } }
         });
-
         if (error) throw error;
-
-        setSuccessMsg('Account created successfully! Check your email to confirm registration or sign in directly.');
+        setSuccessMsg('Account created. Check your email to confirm registration.');
         if (data.user) {
-          setTimeout(() => {
-            onAuthSuccess(data.user);
-            onClose();
-          }, 1500);
+          setTimeout(() => { onAuthSuccess(data.user); onClose(); }, 1500);
         }
       } else if (mode === 'login') {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-
-        setSuccessMsg('Signed in successfully!');
+        setSuccessMsg('Signed in successfully.');
         if (data.user) {
-          setTimeout(() => {
-            onAuthSuccess(data.user);
-            onClose();
-          }, 800);
+          setTimeout(() => { onAuthSuccess(data.user); onClose(); }, 800);
         }
       } else if (mode === 'reset') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: window.location.origin
         });
-
         if (error) throw error;
-
-        setSuccessMsg('Password reset instructions sent to your email address!');
+        setSuccessMsg('Password reset instructions sent to your email.');
       }
     } catch (err) {
-      console.error('Auth error:', err);
-      setErrorMsg(err.message || 'Authentication operation failed.');
+      setErrorMsg(err.message || 'Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = (m) => { setMode(m); setErrorMsg(''); setSuccessMsg(''); };
+
+  const inputStyle = {
+    width: '100%',
+    background: '#0d1117',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '7px',
+    color: '#e2e8f0',
+    fontSize: '0.875rem',
+    padding: '0.6rem 0.85rem',
+    outline: 'none',
+    transition: 'border-color 0.15s ease',
+    display: 'block',
+  };
+
   return (
-    <div className="modal-overlay" style={{ animation: 'fadeSlideUp 0.3s ease both' }}>
+    <div
+      className="modal-overlay"
+      style={{ animation: 'fadeSlideUp 0.2s ease both' }}
+      onClick={(e) => { if (!isGate && e.target === e.currentTarget) onClose(); }}
+    >
       <div
-        className="modal-card vision-zoom-card card-glow-teal anim-scale-pop anim-float-slow scan-line-effect"
         style={{
-          maxWidth: '460px',
-          padding: 0,
-          background: 'linear-gradient(135deg, rgba(22, 27, 38, 0.98) 0%, rgba(13, 17, 26, 0.99) 100%)',
-          border: '1px solid rgba(20, 184, 166, 0.4)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: '0 30px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(20, 184, 166, 0.2)',
-          backdropFilter: 'blur(20px)',
-          overflow: 'hidden'
+          width: '100%',
+          maxWidth: '420px',
+          background: '#111827',
+          border: '1px solid rgba(255,255,255,0.09)',
+          borderRadius: '12px',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.65)',
+          overflow: 'hidden',
+          fontFamily: "'DM Sans', sans-serif",
         }}
       >
-        {/* Header Branding */}
-        <div
-          style={{
-            background: 'linear-gradient(180deg, #0d111a 0%, #161b26 100%)',
-            color: '#ffffff',
-            padding: '1.6rem 1.75rem 1.25rem',
-            position: 'relative',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-          }}
-        >
-          {/* Close Button */}
-          <button
-            className="btn-ghost vision-zoom-card"
-            style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: '#94a3b8', padding: '6px', borderRadius: '8px' }}
-            onClick={onClose}
-          >
-            <X size={18} />
-          </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                background: 'rgba(20, 184, 166, 0.2)',
-                border: '1px solid rgba(20, 184, 166, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 15px rgba(20, 184, 166, 0.3)'
-              }}
-            >
-              <Shield size={20} color="#14b8a6" className="bounce-anim" />
+        {/* Header */}
+        <div style={{
+          padding: '1.6rem 1.75rem 0',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '8px',
+              background: 'rgba(13,148,136,0.12)',
+              border: '1px solid rgba(13,148,136,0.22)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Shield size={17} color="#0d9488" />
             </div>
             <div>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' }}>
+              <div style={{
+                fontSize: '1.05rem', fontWeight: 600, color: '#f1f5f9',
+                fontFamily: "'Fraunces', serif", letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+              }}>
                 Aegis LifeOps
-              </span>
-              <div style={{ fontSize: '0.75rem', color: '#14b8a6', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Sparkles size={11} />
-                <span>Deterministic Private Vault</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#475569', marginTop: '2px' }}>
+                {mode === 'login' ? 'Sign in to your account' : mode === 'signup' ? 'Create your account' : 'Reset your password'}
               </div>
             </div>
           </div>
 
-          {/* Mode Switcher Segmented Control */}
-          <div
-            style={{
-              display: 'flex',
-              background: '#0d111a',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '10px',
-              padding: '4px',
-              marginTop: '1.1rem',
-              gap: '4px'
-            }}
-          >
+          {!isGate && (
             <button
-              type="button"
-              onClick={() => {
-                setMode('login');
-                setErrorMsg('');
-                setSuccessMsg('');
-              }}
+              onClick={onClose}
               style={{
-                flex: 1,
-                padding: '0.55rem',
-                fontSize: '0.825rem',
-                fontWeight: mode === 'login' ? 800 : 600,
-                color: mode === 'login' ? '#ffffff' : '#94a3b8',
-                background: mode === 'login' ? '#14b8a6' : 'transparent',
-                border: 'none',
-                borderRadius: '7px',
-                cursor: 'pointer',
-                boxShadow: mode === 'login' ? '0 0 15px rgba(20, 184, 166, 0.4)' : 'none',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: '#475569', padding: '4px', borderRadius: '6px',
+                display: 'flex', alignItems: 'center', marginTop: '-2px',
               }}
+              title="Close"
             >
-              Sign In
+              <X size={17} />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode('signup');
-                setErrorMsg('');
-                setSuccessMsg('');
-              }}
-              style={{
-                flex: 1,
-                padding: '0.55rem',
-                fontSize: '0.825rem',
-                fontWeight: mode === 'signup' ? 800 : 600,
-                color: mode === 'signup' ? '#ffffff' : '#94a3b8',
-                background: mode === 'signup' ? '#14b8a6' : 'transparent',
-                border: 'none',
-                borderRadius: '7px',
-                cursor: 'pointer',
-                boxShadow: mode === 'signup' ? '0 0 15px rgba(20, 184, 166, 0.4)' : 'none',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            >
-              Sign Up
-            </button>
-          </div>
+          )}
         </div>
 
-        {/* Body Form */}
-        <form onSubmit={handleSubmit} style={{ padding: '1.6rem 1.75rem' }}>
+        {/* Tab Switcher */}
+        {mode !== 'reset' && (
+          <div style={{
+            display: 'flex',
+            margin: '1.4rem 1.75rem 0',
+            borderBottom: '1px solid rgba(255,255,255,0.07)',
+          }}>
+            {[['login', 'Sign In'], ['signup', 'Sign Up']].map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => switchMode(m)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: mode === m ? '2px solid #0d9488' : '2px solid transparent',
+                  color: mode === m ? '#e2e8f0' : '#475569',
+                  fontSize: '0.84rem',
+                  fontWeight: mode === m ? 600 : 400,
+                  padding: '0 0 0.6rem',
+                  marginRight: '1.5rem',
+                  cursor: 'pointer',
+                  transition: 'color 0.15s ease, border-color 0.15s ease',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ padding: '1.5rem 1.75rem 1.6rem' }}>
+
           {errorMsg && (
-            <div
-              className="anim-fade-up"
-              style={{
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.35)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.75rem 1rem',
-                marginBottom: '1.25rem',
-                fontSize: '0.825rem',
-                color: '#fca5a5',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.65rem',
-                boxShadow: '0 4px 15px rgba(239, 68, 68, 0.15)'
-              }}
-            >
-              <AlertCircle size={16} style={{ marginTop: '2px', flexShrink: 0, color: '#ef4444' }} />
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '0.55rem',
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: '7px', padding: '0.65rem 0.85rem', marginBottom: '1.2rem',
+              fontSize: '0.795rem', color: '#fca5a5', lineHeight: 1.5,
+            }}>
+              <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#f87171' }} />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div
-              className="anim-fade-up"
-              style={{
-                background: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(16, 185, 129, 0.35)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.75rem 1rem',
-                marginBottom: '1.25rem',
-                fontSize: '0.825rem',
-                color: '#6ee7b7',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.65rem',
-                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.15)'
-              }}
-            >
-              <CheckCircle2 size={16} style={{ marginTop: '2px', flexShrink: 0, color: '#10b981' }} />
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '0.55rem',
+              background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+              borderRadius: '7px', padding: '0.65rem 0.85rem', marginBottom: '1.2rem',
+              fontSize: '0.795rem', color: '#6ee7b7', lineHeight: 1.5,
+            }}>
+              <CheckCircle2 size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#10b981' }} />
               <span>{successMsg}</span>
             </div>
           )}
 
           {!isSupabaseConfigured && (
-            <div
-              style={{
-                background: 'rgba(245, 158, 11, 0.12)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.75rem 1rem',
-                marginBottom: '1.25rem',
-                fontSize: '0.78rem',
-                color: '#fde68a',
-                lineHeight: 1.5
-              }}
-            >
-              <strong style={{ color: '#f59e0b' }}>Demo Storage Mode Active:</strong> Cloud authentication relies on optional Supabase keys. You can operate all feature workflows locally without logging in.
+            <div style={{
+              background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.18)',
+              borderRadius: '7px', padding: '0.65rem 0.85rem', marginBottom: '1.2rem',
+              fontSize: '0.775rem', color: '#fbbf24', lineHeight: 1.55,
+            }}>
+              <strong style={{ fontWeight: 600 }}>Demo mode active.</strong>{' '}
+              Cloud auth requires Supabase configuration. All features are accessible locally without signing in.
             </div>
           )}
 
+          {/* Full Name */}
           {mode === 'signup' && (
-            <div className="form-group anim-fade-up" style={{ marginBottom: '1.1rem' }}>
-              <label className="form-label" style={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.825rem', marginBottom: '0.4rem' }}>
-                Full Name
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 500, color: '#64748b', marginBottom: '0.35rem' }}>
+                Full name
               </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{
-                    paddingLeft: '2.5rem',
-                    background: '#0d111a',
-                    color: '#f8fafc',
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem'
-                  }}
-                  placeholder="e.g. Sanya Sharma"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-                <User size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#14b8a6' }} />
-              </div>
+              <input
+                type="text"
+                placeholder="Your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                style={inputStyle}
+              />
             </div>
           )}
 
-          <div className="form-group" style={{ marginBottom: '1.1rem' }}>
-            <label className="form-label" style={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.825rem', marginBottom: '0.4rem' }}>
-              Email Address
+          {/* Email */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 500, color: '#64748b', marginBottom: '0.35rem' }}>
+              Email address
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="email"
-                className="form-input"
-                style={{
-                  paddingLeft: '2.5rem',
-                  background: '#0d111a',
-                  color: '#f8fafc',
-                  borderColor: 'rgba(255, 255, 255, 0.12)',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem'
-                }}
-                placeholder="name@domain.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Mail size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#14b8a6' }} />
-            </div>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={inputStyle}
+            />
           </div>
 
+          {/* Password */}
           {mode !== 'reset' && (
-            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label className="form-label" style={{ marginBottom: 0, color: '#cbd5e1', fontWeight: 700, fontSize: '0.825rem' }}>
+            <div style={{ marginBottom: '1.4rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 500, color: '#64748b' }}>
                   Password
                 </label>
                 {mode === 'login' && (
                   <button
                     type="button"
-                    className="btn-ghost"
-                    style={{ fontSize: '0.75rem', padding: 0, color: '#14b8a6', fontWeight: 700 }}
-                    onClick={() => {
-                      setMode('reset');
-                      setErrorMsg('');
-                      setSuccessMsg('');
-                    }}
+                    onClick={() => switchMode('reset')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.73rem', color: '#0d9488', padding: 0, fontFamily: 'inherit' }}
                   >
                     Forgot password?
                   </button>
@@ -354,78 +272,72 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className="form-input"
-                  style={{
-                    paddingLeft: '2.5rem',
-                    paddingRight: '2.5rem',
-                    background: '#0d111a',
-                    color: '#f8fafc',
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem'
-                  }}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  style={{ ...inputStyle, paddingRight: '2.4rem' }}
                 />
-                <Lock size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#14b8a6' }} />
                 <button
                   type="button"
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
                   onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? 'Hide Password' : 'Show Password'}
+                  style={{
+                    position: 'absolute', right: '0.7rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'transparent', border: 'none', color: '#334155', cursor: 'pointer', padding: '2px',
+                    display: 'flex', alignItems: 'center',
+                  }}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
-            className="btn-primary vision-zoom-card ripple-container"
+            disabled={loading}
             style={{
               width: '100%',
-              marginTop: '0.5rem',
-              justifyContent: 'center',
-              padding: '0.75rem',
-              background: 'var(--accent-lime)',
-              color: '#000000',
-              fontWeight: 800,
-              fontSize: '0.9rem',
-              borderRadius: '8px',
-              boxShadow: '0 0 20px rgba(132, 204, 22, 0.35)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+              padding: '0.68rem 1rem',
+              background: loading ? '#0f766e' : '#0d9488',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '7px',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'background 0.15s ease',
+              letterSpacing: '0.01em',
+              fontFamily: 'inherit',
             }}
-            disabled={loading}
           >
-            {loading ? 'Processing Authorization...' : (
+            {loading ? 'Please wait…' : (
               <>
-                <span>{mode === 'login' ? 'Sign In to LifeOps' : mode === 'signup' ? 'Create Free Vault' : 'Send Password Reset Link'}</span>
-                <ArrowRight size={16} />
+                <span>
+                  {mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
+                </span>
+                <ArrowRight size={14} />
               </>
             )}
           </button>
 
-          {/* Privacy & Trust Badge Footer */}
-          <div
-            style={{
-              marginTop: '1.35rem',
-              paddingTop: '1.1rem',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              fontSize: '0.75rem',
-              color: '#94a3b8'
-            }}
-          >
-            <ShieldCheck size={14} color="#14b8a6" />
-            <span>Row-Level Security (RLS) Protected Private Operations</span>
+          {/* Footer note */}
+          <div style={{
+            marginTop: '1.25rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            fontSize: '0.7rem', color: '#1e293b',
+          }}>
+            <ShieldCheck size={11} color="#1e293b" />
+            <span>Data is stored privately and securely.</span>
           </div>
         </form>
       </div>
     </div>
   );
 }
+
+

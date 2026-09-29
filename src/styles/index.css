@@ -34,7 +34,7 @@
   --sev-low: #64748b;
   --sev-low-bg: #f1f5f9;
 
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -168,23 +168,28 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
-  color: #94a3b8;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0;
+  color: #64748b;
   font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.15s ease;
+  font-weight: 500;
+  transition: color 0.15s ease;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  position: relative;
 }
 
 .nav-tab:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  background: transparent;
 }
 
 .nav-tab.active {
-  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #14b8a6;
 }
 
 .nav-actions {
@@ -194,22 +199,24 @@ input, select, textarea {
 }
 
 .btn-nav-inbox {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f8fafc;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-md);
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0;
   font-size: 0.825rem;
-  font-weight: 600;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
+  border-bottom: 2px solid transparent;
 }
 
 .btn-nav-inbox:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #14b8a6;
+  border-color: transparent;
 }
 
 .bell-badge-count {

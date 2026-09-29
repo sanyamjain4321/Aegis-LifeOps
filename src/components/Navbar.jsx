@@ -38,7 +38,7 @@ export default function Navbar({
               <Shield size={20} color="#ffffff" />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Aegis LifeOps</span>
+              <span style={{ fontSize: '1.15rem', fontWeight: 600, letterSpacing: '-0.01em', fontFamily: "'Fraunces', serif" }}>Aegis LifeOps</span>
               <span className="brand-badge-pill anim-float-slow">
                 <span className="status-dot" />
                 {dbMode}

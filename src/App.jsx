@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import DashboardView from './components/DashboardView';
@@ -16,7 +16,7 @@ import { supabase, isSupabaseConfigured } from './utils/supabaseClient';
 import { fetchUserObligations, saveUserObligation, deleteUserObligation, updateUserObligationStatus, importLocalStorageDataToSupabase } from './utils/dbService';
 import { resetDemoData } from './utils/storage';
 import { calculatePriorityScore } from './utils/priorityCalculator';
-import { Database, AlertTriangle, CheckCircle2, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Shield } from 'lucide-react';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -24,6 +24,7 @@ export default function App() {
   const [obligations, setObligations] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  // Landing page is the home/marketing page shown before signing in
   const [showLandingPage, setShowLandingPage] = useState(true);
 
   // Modals & Drawers
@@ -35,47 +36,47 @@ export default function App() {
   const [proofObligation, setProofObligation] = useState(null);
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
 
-  // Toast feedback state
   const [toast, setToast] = useState(null);
-
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  // 1. Auth Listener & Session initialization
+  // If user is not signed in, open auth modal instead of doing the action
+  const requireAuth = (action, mode = 'login') => {
+    if (!currentUser) {
+      setAuthInitialMode(mode);
+      setIsAuthModalOpen(true);
+      return;
+    }
+    action();
+  };
+
+  // Auth listener
   useEffect(() => {
     if (isSupabaseConfigured && supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         const user = session?.user ?? null;
         setCurrentUser(user);
         setAuthLoading(false);
-        if (!user) {
-          setShowLandingPage(true);
-        } else {
-          setShowLandingPage(false);
-        }
+        if (user) setShowLandingPage(false);
       });
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         const user = session?.user ?? null;
         setCurrentUser(user);
         setAuthLoading(false);
-        if (user) {
-          setShowLandingPage(false);
-        } else {
-          setShowLandingPage(true);
-        }
+        if (user) setShowLandingPage(false);
+        if (!user) setShowLandingPage(true);
       });
 
       return () => subscription.unsubscribe();
     } else {
       setAuthLoading(false);
-      // In local demo mode, landing page is shown by default until user explores app
     }
   }, []);
 
-  // 2. Load Obligations whenever currentUser or auth state changes
+  // Load data when user is set
   const loadData = async () => {
     setLoadingData(true);
     try {
@@ -89,33 +90,25 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (!currentUser) return;
     loadData();
-
-    const handleStorageUpdate = () => {
-      loadData();
-    };
-
+    const handleStorageUpdate = () => loadData();
     window.addEventListener('aegis-storage-update', handleStorageUpdate);
-    return () => {
-      window.removeEventListener('aegis-storage-update', handleStorageUpdate);
-    };
+    return () => window.removeEventListener('aegis-storage-update', handleStorageUpdate);
   }, [currentUser]);
 
-  // Urgent count for badge (overdue or due <= 3 days)
   const urgentCount = obligations.filter(o => {
     if (o.status === 'Completed') return false;
     const p = calculatePriorityScore(o, obligations);
     return p.daysRemaining <= 3;
   }).length;
 
-  // CRUD Handlers
   const handleSaveObligation = async (item) => {
     try {
       await saveUserObligation(item, currentUser?.id);
       await loadData();
-      showToast(item.id ? 'Obligation updated successfully!' : 'New obligation saved to command center!');
+      showToast(item.id ? 'Obligation updated.' : 'Obligation saved.');
     } catch (err) {
-      console.error('Save error:', err);
       showToast(err.message || 'Error saving obligation', 'error');
     }
   };
@@ -126,7 +119,6 @@ export default function App() {
       await loadData();
       showToast('Obligation removed.');
     } catch (err) {
-      console.error('Delete error:', err);
       showToast('Error deleting obligation', 'error');
     }
   };
@@ -135,9 +127,8 @@ export default function App() {
     try {
       await updateUserObligationStatus(id, newStatus, proof, currentUser?.id);
       await loadData();
-      showToast(`Status updated to "${newStatus}"!`);
+      showToast(`Status updated to "${newStatus}".`);
     } catch (err) {
-      console.error('Status update error:', err);
       showToast('Error updating status', 'error');
     }
   };
@@ -145,7 +136,7 @@ export default function App() {
   const handleResetDemo = () => {
     resetDemoData();
     loadData();
-    showToast('Demo data reset to initial sample state!');
+    showToast('Demo data reset.');
   };
 
   const handleSaveSmartInboxDraft = async (draft) => {
@@ -154,10 +145,7 @@ export default function App() {
   };
 
   const handleImportLocalData = async () => {
-    if (!currentUser) {
-      showToast('Please sign in to import data into your database.', 'error');
-      return;
-    }
+    if (!currentUser) return;
     const result = await importLocalStorageDataToSupabase(currentUser.id);
     if (result.success) {
       await loadData();
@@ -172,53 +160,69 @@ export default function App() {
       await supabase.auth.signOut();
     }
     setCurrentUser(null);
+    setObligations([]);
     setShowLandingPage(true);
-    showToast('Signed out successfully.');
+    showToast('Signed out.');
   };
 
-  // If viewing Public Landing Page
-  if (showLandingPage) {
+  const openAuthModal = (mode) => {
+    setAuthInitialMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  // Auth loading screen
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh', background: '#080b11',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem',
+      }}>
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '10px',
+          background: 'rgba(13,148,136,0.15)', border: '1px solid rgba(13,148,136,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Shield size={20} color="#0d9488" />
+        </div>
+        <div style={{ color: '#475569', fontSize: '0.82rem', fontFamily: "'DM Sans', sans-serif" }}>
+          Loading&hellip;
+        </div>
+      </div>
+    );
+  }
+
+  // Landing page — visible to everyone, but all app actions require auth
+  if (showLandingPage || !currentUser) {
     return (
       <div className="app-container">
         <Navbar
           activeTab={activeTab}
-          setActiveTab={(tab) => {
+          setActiveTab={(tab) => requireAuth(() => {
             setActiveTab(tab);
             setShowLandingPage(false);
-          }}
+          })}
           currentUser={currentUser}
-          onOpenAuthModal={(mode) => {
-            setAuthInitialMode(mode);
-            setIsAuthModalOpen(true);
-          }}
+          onOpenAuthModal={openAuthModal}
           onSignOut={handleSignOut}
           onImportLocalData={handleImportLocalData}
-          onOpenAddModal={() => {
+          onOpenAddModal={() => requireAuth(() => {
             setShowLandingPage(false);
             setEditingObligation(null);
             setIsAddModalOpen(true);
-          }}
-          onOpenSmartInbox={() => {
+          })}
+          onOpenSmartInbox={() => requireAuth(() => {
             setShowLandingPage(false);
             setIsSmartInboxOpen(true);
-          }}
-          onOpenReminders={() => setIsRemindersOpen(true)}
+          })}
+          onOpenReminders={() => requireAuth(() => setIsRemindersOpen(true))}
           onResetDemo={handleResetDemo}
           urgentCount={urgentCount}
         />
 
         <LandingPage
-          onOpenLogin={() => {
-            setAuthInitialMode('login');
-            setIsAuthModalOpen(true);
-          }}
-          onOpenSignup={() => {
-            setAuthInitialMode('signup');
-            setIsAuthModalOpen(true);
-          }}
-          onDemoExplore={() => {
-            setShowLandingPage(false);
-          }}
+          onOpenLogin={() => openAuthModal('login')}
+          onOpenSignup={() => openAuthModal('signup')}
+          onDemoExplore={() => requireAuth(() => setShowLandingPage(false))}
         />
 
         <AuthModal
@@ -227,76 +231,55 @@ export default function App() {
           initialMode={authInitialMode}
           onAuthSuccess={(user) => {
             setCurrentUser(user);
+            setIsAuthModalOpen(false);
             setShowLandingPage(false);
             loadData();
+            showToast(`Welcome, ${user.user_metadata?.full_name || user.email}!`);
           }}
         />
       </div>
     );
   }
 
+  // Authenticated app
   return (
     <div className="app-container">
-      {/* 60fps Ambient Floating Life-Admin Backdrop */}
       <InternalAmbientBackdrop />
 
-      {/* Toast Feedback Banner */}
       {toast && (
         <div style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          right: '1.5rem',
-          zIndex: 1000,
+          position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 1000,
           background: toast.type === 'error' ? '#fee2e2' : '#d1fae5',
           color: toast.type === 'error' ? '#991b1b' : '#065f46',
           border: toast.type === 'error' ? '1px solid #fca5a5' : '1px solid #6ee7b7',
-          padding: '0.75rem 1.25rem',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontWeight: 600,
-          fontSize: '0.875rem'
+          padding: '0.75rem 1.25rem', borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-lg)', display: 'flex', alignItems: 'center',
+          gap: '0.5rem', fontWeight: 600, fontSize: '0.875rem',
         }}>
           {toast.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setShowLandingPage(false);
-        }}
+        setActiveTab={setActiveTab}
         currentUser={currentUser}
         onOpenLandingPage={() => setShowLandingPage(true)}
-        onOpenAuthModal={(mode) => {
-          setAuthInitialMode(mode);
-          setIsAuthModalOpen(true);
-        }}
+        onOpenAuthModal={openAuthModal}
         onSignOut={handleSignOut}
         onImportLocalData={handleImportLocalData}
-        onOpenAddModal={() => {
-          setEditingObligation(null);
-          setIsAddModalOpen(true);
-        }}
+        onOpenAddModal={() => { setEditingObligation(null); setIsAddModalOpen(true); }}
         onOpenSmartInbox={() => setIsSmartInboxOpen(true)}
         onOpenReminders={() => setIsRemindersOpen(true)}
         onResetDemo={handleResetDemo}
         urgentCount={urgentCount}
       />
 
-
-      {/* Main View Shell */}
       <main className="main-content">
         {loadingData ? (
           <div style={{ padding: '4rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Sparkles size={32} className="spin-icon" color="var(--accent-teal)" style={{ marginBottom: '1rem' }} />
-            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-main)' }}>Loading Aegis LifeOps Data...</div>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.35rem' }}>Syncing private obligations with database security policies</p>
+            <div style={{ fontWeight: 600, fontSize: '1rem', color: '#94a3b8' }}>Loading your data&hellip;</div>
           </div>
         ) : (
           <>
@@ -306,38 +289,26 @@ export default function App() {
                 onNavigateToObligations={() => setActiveTab('obligations')}
                 onOpenProofModal={(ob) => setProofObligation(ob)}
                 onOpenSmartInbox={() => setIsSmartInboxOpen(true)}
-                onOpenAddModal={() => {
-                  setEditingObligation(null);
-                  setIsAddModalOpen(true);
-                }}
+                onOpenAddModal={() => { setEditingObligation(null); setIsAddModalOpen(true); }}
               />
             )}
-
             {activeTab === 'obligations' && (
               <ObligationList
                 obligations={obligations}
-                onOpenAddModal={() => {
-                  setEditingObligation(null);
-                  setIsAddModalOpen(true);
-                }}
-                onOpenEditModal={(ob) => {
-                  setEditingObligation(ob);
-                  setIsAddModalOpen(true);
-                }}
+                onOpenAddModal={() => { setEditingObligation(null); setIsAddModalOpen(true); }}
+                onOpenEditModal={(ob) => { setEditingObligation(ob); setIsAddModalOpen(true); }}
                 onOpenProofModal={(ob) => setProofObligation(ob)}
                 onOpenSmartInbox={() => setIsSmartInboxOpen(true)}
                 onDeleteObligation={handleDeleteObligation}
                 onUpdateStatus={handleUpdateStatus}
               />
             )}
-
             {activeTab === 'calendar' && (
               <CalendarTimelineView
                 obligations={obligations}
                 onOpenProofModal={(ob) => setProofObligation(ob)}
               />
             )}
-
             {activeTab === 'dependencies' && (
               <DependencyGraphView
                 obligations={obligations}
@@ -348,16 +319,16 @@ export default function App() {
         )}
       </main>
 
-      {/* Modals & Drawers */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialMode={authInitialMode}
         onAuthSuccess={(user) => {
           setCurrentUser(user);
+          setIsAuthModalOpen(false);
           setShowLandingPage(false);
           loadData();
-          showToast(`Welcome back, ${user.email}!`);
+          showToast(`Welcome back, ${user.user_metadata?.full_name || user.email}!`);
         }}
       />
 
@@ -370,10 +341,7 @@ export default function App() {
 
       <ObligationFormModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setEditingObligation(null);
-        }}
+        onClose={() => { setIsAddModalOpen(false); setEditingObligation(null); }}
         onSave={handleSaveObligation}
         editingObligation={editingObligation}
         obligations={obligations}
@@ -384,9 +352,7 @@ export default function App() {
         onClose={() => setProofObligation(null)}
         obligation={proofObligation}
         obligations={obligations}
-        onSaveProof={(id, status, proofData) => {
-          handleUpdateStatus(id, status, proofData);
-        }}
+        onSaveProof={(id, status, proofData) => handleUpdateStatus(id, status, proofData)}
       />
 
       <RemindersDrawer
