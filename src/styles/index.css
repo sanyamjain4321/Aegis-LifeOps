@@ -1708,5 +1708,133 @@ html, body {
   }
 }
 
+/* ═══════════════ ULTRA-NARROW MOBILE VIEWPORTS (320px – 480px) ═══════════════ */
+@media (max-width: 480px) {
+  /* Enforce ZERO horizontal page overflow on 375px & 320px mobile screens */
+  html, body, #root, .app-container, .main-content {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
 
+  .main-content {
+    padding: 0.75rem 0.5rem !important;
+  }
 
+  /* Responsive Dynamic Typography Scaling for Hero & Section Headlines */
+  h1, .scene-hero-title {
+    font-size: 1.65rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.02em !important;
+    word-break: break-word !important;
+  }
+
+  h2 {
+    font-size: 1.15rem !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+  }
+
+  h3 {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  h4 {
+    font-size: 0.9rem !important;
+  }
+
+  /* Header & Navigation Bar Padding & Button Overflow Prevention */
+  .navbar-inner {
+    padding: 0.6rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .brand-logo {
+    gap: 0.35rem !important;
+  }
+
+  .brand-logo span {
+    font-size: 1rem !important;
+  }
+
+  .brand-badge-pill {
+    display: none !important;
+  }
+
+  .nav-actions {
+    gap: 0.35rem !important;
+  }
+
+  .btn-nav-inbox, .btn-primary, .btn-secondary {
+    padding: 0.4rem 0.65rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Stack all grid layouts into single vertical column (grid-cols-1) */
+  .stats-grid,
+  .action-plan-content,
+  .dependency-grid,
+  div[class*="grid"],
+  div[style*="display: grid"],
+  div[style*="display:grid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Deterministic Smart Inbox & Priority Command Center Padding */
+  .action-plan-card,
+  .obligations-table-container,
+  .toolbar-card,
+  .stat-card,
+  .dependency-card,
+  .shimmer-card {
+    padding: 1rem 0.85rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* Action Steps List flex wrapping */
+  .action-steps-list {
+    gap: 0.5rem !important;
+  }
+
+  .action-step-item {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Calendar Controls & Filter Chips Touch Wrapping */
+  .toolbar-row {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  .btn-tab {
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.5rem !important;
+  }
+
+  /* Table horizontal touch swipe indicator container */
+  .obligations-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .obligations-table {
+    min-width: 580px !important;
+  }
+
+  /* Modals on 320px–480px viewports */
+  .modal-card {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 94vh !important;
+    padding: 0 !important;
+  }
+
+  .modal-header, .modal-body, .modal-footer {
+    padding: 0.85rem !important;
+  }
+}
