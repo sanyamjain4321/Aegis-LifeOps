@@ -1485,12 +1485,14 @@ input, select, textarea {
   50% { transform: translateY(-8px); }
 }
 
-/* ═══════════════ COMPREHENSIVE MOBILE PHONE RESPONSIVENESS ═══════════════ */
+/* ═══════════════ ULTRA-CLEAN MOBILE PHONE RESPONSIVENESS SYSTEM ═══════════════ */
 
 /* Global body overflow guard for mobile screens */
 html, body {
   overflow-x: hidden;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .mobile-nav-toggle {
@@ -1505,9 +1507,15 @@ html, body {
 
 /* Tablet & Mobile Screens (<= 900px) */
 @media (max-width: 900px) {
+  /* Navigation Bar Mobile Layout */
+  .navbar-inner {
+    padding: 0.75rem 1rem !important;
+  }
+
   .nav-links {
     display: none;
   }
+
   .nav-links.mobile-open {
     display: flex;
     flex-direction: column;
@@ -1516,25 +1524,51 @@ html, body {
     left: 0;
     right: 0;
     background: rgba(8, 11, 17, 0.98);
-    backdrop-filter: blur(20px);
-    padding: 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-    z-index: 99;
-    gap: 0.5rem;
+    backdrop-filter: blur(24px);
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(20, 184, 166, 0.3);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
+    z-index: 999;
+    gap: 0.65rem;
   }
+
+  .nav-links.mobile-open .nav-tab {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+  }
+
   .mobile-nav-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
   .hide-mobile {
     display: none !important;
   }
 
-  /* Action Plan layout stacking */
+  /* Main Dashboard Grid Stacking: 2fr 1fr -> 1 column */
+  .main-content {
+    padding: 1.25rem 1rem !important;
+  }
+
   .action-plan-content {
     grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .action-plan-side {
+    height: auto !important;
+  }
+
+  /* Force 2-column main dashboard container to stack */
+  div[style*="gridTemplateColumns: '2fr 1fr'"],
+  div[style*="gridTemplateColumns: \"2fr 1fr\""] {
+    display: flex !important;
+    flex-direction: column !important;
     gap: 1.25rem !important;
   }
 
@@ -1542,38 +1576,56 @@ html, body {
   .obligations-table-container {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-lg) !important;
   }
+
   .obligations-table {
-    min-width: 640px;
+    min-width: 680px;
   }
 }
 
-/* Mobile Phones (<= 680px) */
-@media (max-width: 680px) {
+/* Smartphone Portrait Screens (<= 640px) */
+@media (max-width: 640px) {
   .main-content {
-    padding: 1rem 0.75rem !important;
+    padding: 0.85rem 0.65rem !important;
   }
 
-  /* Header title sizing */
+  /* Typography scale on mobile */
   h2 {
-    font-size: 1.15rem !important;
+    font-size: 1.2rem !important;
+    line-height: 1.35 !important;
   }
 
-  /* Operational Stats Grid: 1 column on small phones */
+  h3 {
+    font-size: 1.05rem !important;
+  }
+
+  /* Action Plan Glass Module */
+  .action-plan-card {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .action-plan-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.65rem !important;
+  }
+
+  /* Operational Stats Grid: clean 1-column layout on phones */
   .stats-grid {
     grid-template-columns: 1fr !important;
     gap: 0.85rem !important;
   }
 
   .stat-card {
-    padding: 1rem 1.1rem !important;
+    padding: 1.1rem 1rem !important;
   }
 
   .stat-value {
-    font-size: 1.4rem !important;
+    font-size: 1.55rem !important;
   }
 
-  /* Toolbar controls stacking */
+  /* Directory Toolbar & Filters Clean Layout */
   .toolbar-card {
     padding: 1rem !important;
   }
@@ -1584,53 +1636,77 @@ html, body {
     gap: 0.75rem !important;
   }
 
+  /* Group search box and filter selects cleanly */
   .search-box {
     width: 100% !important;
+    min-width: 100% !important;
   }
 
   .filter-select {
     width: 100% !important;
+    min-width: 100% !important;
+    background-color: #0d111a !important;
   }
 
-  /* 3D Floating Grid on mobile */
+  /* 3D Floating Spatial Cards Grid: 1 column on phones */
   div[style*="gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'"],
+  div[style*="gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))'"],
   div[style*="gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))'"],
   div[style*="gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))'"] {
     grid-template-columns: 1fr !important;
+    gap: 1rem !important;
   }
 
-  /* Calendar Month Grid Cell Adjustments */
+  /* Calendar Month Grid Cell Mobile Adjustments */
+  div[style*="gridTemplateColumns: 'repeat(7, 1fr)'"] {
+    gap: 2px !important;
+  }
+
   div[style*="gridTemplateColumns: 'repeat(7, 1fr)'"] > div {
-    min-height: 75px !important;
-    padding: 0.35rem !important;
+    min-height: 68px !important;
+    padding: 0.25rem !important;
   }
 
-  /* Modals Touch Sizing & Scroll */
+  .calendar-day-number {
+    font-size: 0.75rem !important;
+  }
+
+  /* Modals Touch Sizing & Blur Overlay */
   .modal-overlay {
     padding: 0.5rem !important;
   }
 
   .modal-card {
+    width: 96vw !important;
     max-width: 96vw !important;
     max-height: 92vh !important;
-    border-radius: var(--radius-md) !important;
+    border-radius: var(--radius-lg) !important;
   }
 
   .modal-header {
-    padding: 1rem !important;
+    padding: 1.1rem 1rem !important;
   }
 
   .modal-body {
-    padding: 1rem !important;
+    padding: 1.1rem 1rem !important;
   }
 
-  /* Touch-friendly buttons (min 42px height) */
-  .btn-primary, .btn-secondary, .btn-tab {
-    min-height: 42px;
-    display: inline-flex;
-    align-items: center;
+  .modal-footer {
+    padding: 0.85rem 1rem !important;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer button {
+    width: 100%;
     justify-content: center;
   }
+
+  /* Touch-friendly buttons (min 44px tap target) */
+  .btn-primary, .btn-secondary, .btn-tab, .btn-ghost {
+    min-height: 44px;
+  }
 }
+
 
 
